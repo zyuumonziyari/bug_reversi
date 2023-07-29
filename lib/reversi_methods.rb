@@ -6,26 +6,10 @@ WHITE_STONE = 1
 BLACK_STONE = 2
 BLANK_CELL = 0
 
-# チェスボードを参考として、マスを 'a8', 'd6' と書いて表現する。
-# 変数名cellstrとして取り扱う。
-ROW = %w[a b c d e f g h].freeze
-COL = %w[8 7 6 5 4 3 2 1].freeze
-
-DIRECTIONS = [
-  DIRECTION_TOP_LEFT      = :top_left,
-  DIRECTION_TOP           = :top,
-  DIRECTION_TOP_RIGHT     = :top_right,
-  DIRECTION_LEFT          = :left,
-  DIRECTION_RIGHT         = :right,
-  DIRECTION_BOTTOM_LEFT   = :bottom_left,
-  DIRECTION_BOTTOM        = :bottom,
-  DIRECTION_BOTTOM_RIGHT  = :bottom_right
-].freeze
-
 def output(board)
-  puts "  #{ROW.join(' ')}"
+  puts "  #{Position::ROW.join(' ')}"
   board.each.with_index do |row, i|
-    print COL[i]
+    print Position::COL[i]
     row.each do |cell|
       case cell
       when WHITE_STONE then print ' ○'
@@ -45,8 +29,8 @@ def copy_board(to_board, from_board)
   end
 end
 
-def put_stone!(board, cellstr, stone_color, execute = true) # rubocop:disable Style/OptionalBooleanParameter
-  pos = Position.new(cellstr:)
+def put_stone!(board, cell_ref, stone_color, execute = true) # rubocop:disable Style/OptionalBooleanParameter
+  pos = Position.new(cell_ref:)
   raise '無効なポジションです' if pos.invalid?
   raise 'すでに石が置かれています' unless pos.stone_color(board) == BLANK_CELL
 
@@ -55,7 +39,7 @@ def put_stone!(board, cellstr, stone_color, execute = true) # rubocop:disable St
   copied_board[pos.row][pos.col] = stone_color
 
   turn_succeed = false
-  DIRECTIONS.each do |direction|
+  Position::DIRECTIONS.each do |direction|
     next_pos = pos.next_position(direction)
     turn_succeed = true if turn!(copied_board, next_pos, stone_color, direction)
   end
@@ -89,7 +73,7 @@ def placeable?(board, attack_stone_color)
       next unless cell == BLANK_CELL # 空セルでなければ判定skip
 
       position = Position.new(row:, col:)
-      return true if put_stone!(board, position.to_cellstr, attack_stone_color, false)
+      return true if put_stone!(board, position.to_cell_ref, attack_stone_color, false)
     end
   end
 end
