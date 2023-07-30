@@ -54,7 +54,7 @@ command? (白○) >
 テストコードは編集せずに、すべてパスするようにリバーシプログラムを修正してください。
 
 ```
-$ ruby test/test_reversi_methods.rb
+$ ruby test/reversi_methods_test.rb
 ```
 
 # 提出方法
