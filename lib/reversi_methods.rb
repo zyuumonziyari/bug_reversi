@@ -43,7 +43,7 @@ module ReversiMethods
   def put_stone(board, cell_ref, stone_color, dry_run: false)
     pos = Position.new(cell_ref)
     raise '無効なポジションです' if pos.invalid?
-    raise 'すでに石が置かれています' if pos.stone_color(board) != BLANK_CELL
+    raise 'すでに石が置かれています' unless pos.stone_color(board) == BLANK_CELL
 
     # コピーした盤面にて石の配置を試みて、成功すれば反映する
     copied_board = Marshal.load(Marshal.dump(board))
@@ -62,27 +62,31 @@ module ReversiMethods
   end
 
   def turn(board, target_pos, attack_stone_color, direction)
-    return false if target_pos.out_of_board? || target_pos.stone_color(board) == attack_stone_color
+    return false if target_pos.out_of_board?
+    return false if target_pos.stone_color(board) == attack_stone_color
 
     next_pos = target_pos.next_position(direction)
-    return false if next_pos.stone_color(board) != attack_stone_color && !turn(board, next_pos, attack_stone_color,
-                                                                               direction) || board[target_pos.row][target_pos.col] == BLANK_CELL
-    board[target_pos.row][target_pos.col] = attack_stone_color
-    true
+    if (next_pos.stone_color(board) == attack_stone_color) || turn(board, next_pos, attack_stone_color, direction)
+      board[target_pos.row][target_pos.col] = attack_stone_color
+      true
+    else
+      false
+    end
   end
 
   def finished?(board)
-    count_stone(board, WHITE_STONE).zero? || count_stone(board, BLACK_STONE).zero? || (!placeable?(board, WHITE_STONE) && !placeable?(board, BLACK_STONE))
+    !placeable?(board, WHITE_STONE) && !placeable?(board, BLACK_STONE)
   end
 
   def placeable?(board, attack_stone_color)
-    result = false
     board.each_with_index do |cols, row|
       cols.each_with_index do |cell, col|
-        result = true if cell == BLANK_CELL && put_stone(board, Position.new(row, col).to_cell_ref, attack_stone_color, dry_run: true)
+        if cell == BLANK_CELL && put_stone(board, Position.new(row, col).to_cell_ref, attack_stone_color, dry_run: true)
+          return true
+        end
       end
     end
-    result
+    false
   end
 
   def count_stone(board, stone_color)
